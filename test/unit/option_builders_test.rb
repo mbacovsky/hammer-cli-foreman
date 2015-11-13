@@ -95,7 +95,7 @@ describe HammerCLIForeman::BuilderConfigurator do
 
   describe "simple action without ids" do
 
-    let(:action) { resource.action(:index)}
+    let(:action) { HammerCLIForeman.foreman_resource!(:bookmarks).action(:index)}
 
     it "adds no option builder" do
       result_classes.must_equal []
@@ -123,9 +123,13 @@ describe HammerCLIForeman::BuilderConfigurator do
     end
 
     it "adds dependent searchable option builders" do
-      resource_names(builders_by_class(HammerCLIForeman::DependentSearchablesOptionBuilder)).must_equal [
-        :compute_resources
-      ]
+      resources = resource_names(builders_by_class(HammerCLIForeman::DependentSearchablesOptionBuilder)).sort
+      if FOREMAN_VERSION < Gem::Version.new('1.10')
+        expected = [:compute_resources]
+      else
+        expected = [:compute_resources, :architectures, :operatingsystems]
+      end
+      resources.must_equal expected.sort
     end
 
   end

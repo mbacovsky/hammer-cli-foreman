@@ -174,7 +174,6 @@ module HammerCLIForeman
         search_options[param.name] ||= send(param.name, scoped_options(param.name.gsub(/_id$/, ""), options))
       end
       search_options = route_options(options, action).merge(search_options)
-
       results = resource.call(action_name, search_options)
       results = HammerCLIForeman.collection_to_common_format(results)
       results

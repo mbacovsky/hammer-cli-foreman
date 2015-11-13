@@ -9,15 +9,24 @@ describe HammerCLIForeman::DependencyResolver do
   describe "for resource" do
 
     it "returns empty array for an independent resource" do
-      resource = HammerCLIForeman.foreman_resource!(:architectures)
+      resource = HammerCLIForeman.foreman_resource!(:bookmarks)
       resolver.resource_dependencies(resource).must_equal []
     end
 
     it "returns list of dependent resources" do
       resource = HammerCLIForeman.foreman_resource!(:images)
-      resolver.resource_dependencies(resource).map(&:name).sort_by{|sym| sym.to_s}.must_equal [
-        :compute_resources, :organizations, :locations
-      ].sort_by{|sym| sym.to_s}
+      resources = resolver.resource_dependencies(resource).map(&:name).sort_by{ |sym| sym.to_s }
+      if FOREMAN_VERSION < Gem::Version.new('1.10')
+        expected = [
+          :compute_resources, :organizations, :locations
+        ]
+      else
+        expected = [
+          :architectures, :compute_resources, :config_templates, :locations,
+          :media, :operatingsystems, :organizations, :provisioning_templates, :ptables
+        ]
+      end
+      resources.must_equal expected.sort_by{ |sym| sym.to_s }
     end
 
   end
@@ -31,14 +40,22 @@ describe HammerCLIForeman::DependencyResolver do
 
     it "returns list of dependent resources" do
       action = HammerCLIForeman.foreman_resource!(:hostgroups).action(:create)
-      resolver.action_dependencies(action).map(&:name).sort_by{|sym| sym.to_s}.must_equal [
-        :environments, :operatingsystems, :architectures, :media,
-        :ptables, :subnets, :domains, :realms, :organizations, :locations
-      ].sort_by{|sym| sym.to_s}
+      resources = resolver.action_dependencies(action).map(&:name).sort_by{ |sym| sym.to_s }
+      if FOREMAN_VERSION < Gem::Version.new('1.10')
+        expected = [
+          :environments, :operatingsystems, :architectures, :media,
+          :ptables, :subnets, :domains, :realms, :organizations, :locations
+        ]
+      else
+        expected = [
+          :architectures, :compute_profiles, :config_templates, :domains, :environments,
+          :hostgroups, :hosts, :locations, :media, :operatingsystems, :organizations,
+          :provisioning_templates, :ptables, :puppetclasses, :realms, :subnets
+        ]
+      end
+      resources.must_equal expected.sort_by{|sym| sym.to_s}
     end
 
   end
 
 end
-
-
